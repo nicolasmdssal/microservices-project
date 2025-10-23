@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS appointments (
+    id UUID PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    date TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    doctor VARCHAR(255) NOT NULL,
+    notes TEXT
+    );

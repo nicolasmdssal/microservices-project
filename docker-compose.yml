@@ -1,0 +1,99 @@
+services:
+  # 🗄️ PostgreSQL para usuarios
+  postgres-userdb:
+    image: postgres:15
+    init: true
+    user: "999"
+    container_name: postgres-userdb
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${USER_DB_NAME}
+    ports:
+      - "5433:5432"
+    networks:
+      - microservices-net
+    volumes:
+      - userdb_data:/var/lib/postgresql/data
+      - ./db_init/userdb.sql:/docker-entrypoint-initdb.d/userdb.sql
+
+  postgres-appointmentsdb:
+    image: postgres:15
+    init: true
+    user: "999"
+    container_name: postgres-appointmentsdb
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: appointments_db
+    ports:
+      - "5434:5432"
+    networks:
+      - microservices-net
+    volumes:
+      - appointmentsdb_data:/var/lib/postgresql/data
+      - ./db_init/appointments_db.sql:/docker-entrypoint-initdb.d/appointments_db.sql
+
+  # 👤 Microservicio de usuarios (Reactivo)
+  user-service:
+    image: nicomoralesdssal/user-service:1.0
+    container_name: user-service
+    restart: always
+    depends_on:
+      - postgres-userdb
+    env_file: # <--- ¡AGREGA ESTO!
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_R2DBC_URL=r2dbc:postgresql://${USER_DB_HOST}:${DB_PORT}/${USER_DB_NAME}
+      - DB_USERNAME=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "8081:8081"
+    networks:
+      - microservices-net
+    command: ["/bin/bash", "-c", "sleep 10 && java -jar app.jar"]
+
+  # 📅 Microservicio de citas (Reactivo)
+  appointments-service:
+    image: nicomoralesdssal/appointments-service:1.0
+    container_name: appointments-service
+    restart: always
+    depends_on:
+      - postgres-appointmentsdb
+    env_file: # <--- ¡AGREGA ESTO!
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    ports:
+      - "8082:8082"
+    networks:
+      - microservices-net
+    command: ["/bin/bash", "-c", "sleep 10 && java -jar app.jar"]
+
+  # 🚪 API Gateway
+  gateway:
+    image: tu_usuario_docker/api-gateway:1.0
+    container_name: gateway
+    restart: always
+    depends_on:
+      - user-service
+      - appointments-service
+    ports:
+      - "8080:8080"
+    networks:
+      - microservices-net
+
+networks:
+  microservices-net:
+    driver: overlay
+
+volumes:
+  userdb_data: # VOLUMEN DE DATOS PERSISTENTE DE VUELTA
+  appointmentsdb_data: # VOLUMEN DE DATOS PERSISTENTE DE VUELTA
+
+

@@ -1,0 +1,19 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: user-service
+
+  r2dbc:
+    url: r2dbc:postgresql://postgres-db:5432/userdb
+    username: postgres
+    password: postgres
+    pool:
+      enabled: true
+      initial-size: 2
+      max-size: 5
+
+  sql:
+    init:
+      enabled: false
