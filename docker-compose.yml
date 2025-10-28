@@ -38,7 +38,7 @@ services:
 
   # 🚪 API Gateway
   gateway:
-    image: tu_usuario_docker/api-gateway:1.0
+    image: nicomoralesdssal/api-gateway/api-gateway:1.0
     container_name: gateway
     restart: always
     depends_on:
