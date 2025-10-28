@@ -1,43 +1,4 @@
 services:
-  # 🗄️ PostgreSQL para usuarios
-  postgres-userdb:
-    image: postgres:15
-    init: true
-    user: "999"
-    container_name: postgres-userdb
-    restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${USER_DB_NAME}
-    ports:
-      - "5433:5432"
-    networks:
-      - microservices-net
-    volumes:
-      - userdb_data:/var/lib/postgresql/data
-      - ./db_init/userdb.sql:/docker-entrypoint-initdb.d/userdb.sql
-
-  postgres-appointmentsdb:
-    image: postgres:15
-    init: true
-    user: "999"
-    container_name: postgres-appointmentsdb
-    restart: always
-    env_file:
-      - .env
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: appointments_db
-    ports:
-      - "5434:5432"
-    networks:
-      - microservices-net
-    volumes:
-      - appointmentsdb_data:/var/lib/postgresql/data
-      - ./db_init/appointments_db.sql:/docker-entrypoint-initdb.d/appointments_db.sql
-
   # 👤 Microservicio de usuarios (Reactivo)
   user-service:
     image: nicomoralesdssal/user-service:1.0
@@ -91,9 +52,3 @@ services:
 networks:
   microservices-net:
     driver: overlay
-
-volumes:
-  userdb_data: # VOLUMEN DE DATOS PERSISTENTE DE VUELTA
-  appointmentsdb_data: # VOLUMEN DE DATOS PERSISTENTE DE VUELTA
-
-
